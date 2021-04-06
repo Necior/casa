@@ -61,7 +61,7 @@ class Expense(BaseModel):
     date: datetime.date
 
 
-class Repository:
+class FileRepository:
     def __init__(self):
         self.db_path = "./db"
         with shelve.open(self.db_path) as db:
@@ -83,7 +83,7 @@ class Repository:
             return -1 * int(sum(x.value for x in db["history"])) * 100 / target
 
 
-repo = Repository()
+repo = FileRepository()
 
 
 @app.get("/manifest.json")
