@@ -92,10 +92,6 @@ class FileRepository:
                 sorted(db["history"], key=lambda e: e.date, reverse=True)
             )
 
-    def progress(self, target=1e6):
-        with shelve.open(self.db_path) as db:
-            return -1 * int(sum(x.value for x in db["history"])) * 100 / target
-
 
 repo = FileRepository()
 
@@ -143,7 +139,6 @@ async def root(request: Request):
             "today": datetime.datetime.now().strftime("%Y-%m-%d"),
             "random_quote": random_quote(),
             "expenses": final_exp,
-            "progress": repo.progress(),
         },
     )
 
