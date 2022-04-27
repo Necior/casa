@@ -89,8 +89,8 @@ repo = FileRepository()
 @app.get("/manifest.json")
 def manifest():
     return {
-        "name": "Wydatki app",
-        "short_name": "Wydatki",
+        "name": "Casa",
+        "short_name": "Casa",
         "display": "standalone",
         "start_url": "/",
         "theme_color": "#313131",
