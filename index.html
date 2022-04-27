@@ -16,6 +16,11 @@
         <form action="/add" method="post">
             <input placeholder="Kremówki papieskie" autocomplete="off" name="name">
             <input id="value" autocomplete="off" placeholder="21.37" inputmode="decimal" type="number" step="0.01" name="value">
+            <select name="currency" id="currency">
+                <option value="">-- Wybierz walutę --</option>
+                <option value="EUR">EUR</option>
+                <option value="PLN">PLN</option>
+		    </select>
             <input type="date" name="date" value="{{ today }}">
             <button type="submit">Dodaj</button>
         </form>
@@ -24,14 +29,11 @@
     {% for month_expenses in expenses %}
         <details{% if loop.first %} open{% endif %}>
         <summary>{{ month_expenses['month'] }} {{ month_expenses['year'] }}</summary>
-	<p>
-        <small>Stan: {{ month_expenses['income'] }} zł - {{ month_expenses['expenditure'] }} zł = {{ month_expenses['total'] }} zł</small>
-	</p>
         {% for expense in month_expenses['items'] %}
 	{% if expense.value < 0 %}
 		<p>{{ expense.name }} (+ {{ -1 * expense.value }} zł)</p>
         {% else %}
-		<p>{{ expense.name }} ({{ expense.value }} zł)</p>
+		<p>{{ expense.name }} ({{ expense.format() }})</p>
         {% endif %}
         {% endfor %}
 	</details>

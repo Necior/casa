@@ -59,6 +59,20 @@ class Expense(BaseModel):
     name: str
     value: Decimal  # if income, provide a negative value
     date: datetime.date
+    currency: str = "PLN"
+
+    def format(self):
+        try:
+            c = self.currency
+        except AttributeError:
+            c = "PLN"
+        income = self.value < 0
+        return {
+            (True, "PLN"): f"+{-self.value} zł",
+            (False, "PLN"): f"{self.value} zł",
+            (True, "EUR"): f"+ €{-self.value}",
+            (False, "EUR"): f"€{self.value}",
+        }[(income, c)]
 
 
 class FileRepository:
@@ -112,26 +126,14 @@ def icon():
 
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
-    expenses = []
-    for year_month, exp in groupby(
-        repo.list(), key=lambda e: (e.date.year, e.date.month)
-    ):
-        exp = list(exp)  # since we want to iterate multiple times
-        expenditure = 0
-        income = 0
-        for e in exp:
-            if e.value > 0:
-                expenditure += e.value
-            else:
-                income -= e.value
-        expenses.append(
+    expenses = groupby(repo.list(), key=lambda e: (e.date.year, e.date.month))
+    final_exp = []
+    for year_month, exp in expenses:
+        final_exp.append(
             {
                 "year": year_month[0],
                 "month": get_month_name(year_month[1]),
-                "total": income - expenditure,
-                "expenditure": expenditure,
-                "income": income,
-                "items": exp,
+                "items": list(exp),
             }
         )
     return templates.TemplateResponse(
@@ -140,7 +142,7 @@ async def root(request: Request):
             "request": request,
             "today": datetime.datetime.now().strftime("%Y-%m-%d"),
             "random_quote": random_quote(),
-            "expenses": expenses,
+            "expenses": final_exp,
             "progress": repo.progress(),
         },
     )
@@ -151,7 +153,8 @@ async def add(
     name: str = Form(...),
     value: Decimal = Form(...),
     date: datetime.date = Form(...),
+    currency: str = Form(...),
 ):
-    expense = Expense(name=name, value=value, date=date)
+    expense = Expense(name=name, value=value, date=date, currency=currency)
     repo.add(expense)
     return RedirectResponse(url="/", status_code=303)
