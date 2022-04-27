@@ -13,11 +13,9 @@ A simple (no DBMS, no authentication, no JavaScript) PWA (Progressive Web App) t
 ## Installation and usage
 
 ```bash
-python3.8 -m venv venv # create a virtual environment
-source venv/bin/activate # activate the virtual environment
-pip install -r requirements.txt # install dependencies
+poetry install
 
 # Please read https://fastapi.tiangolo.com/deployment/manually/ before deploying into production
-uvicorn main:app --host 127.0.0.1 --port 8080
+poetry run uvicorn main:app --host 127.0.0.1 --port 8080
 ```
 
