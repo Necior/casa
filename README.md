@@ -4,7 +4,7 @@ A simple (no DBMS, no authentication, no JavaScript) PWA (Progressive Web App) t
 
 ## Properties
 
-* Made in Python 3.8 using FastAPI;
+* Made in Python 3.8 using FastAPI with a pinch of Rust;
 * CSS supports both light and dark themes, depending on agent preferences, thanks to water.css;
 * Stores data in a single file (this constraint might be relaxed in the future);
 * Doesn't require JavaScript runtime; in fact there is no single JS line in the codebase;
