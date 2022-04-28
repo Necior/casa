@@ -1,6 +1,7 @@
 import datetime
 import random
 import shelve
+import sqlite3
 from decimal import Decimal
 from itertools import groupby
 
@@ -51,6 +52,37 @@ class FileRepository:
             return list(
                 sorted(db["history"], key=lambda e: e.date, reverse=True)
             )
+
+
+class SQLiteRepository:
+    def __init__(self):
+        self.connection = sqlite3.connect("db.sqlite")
+        cur = self.connection.cursor()
+        cur.execute(
+            "create table if not exists expenses (name text, value text, date text, currency text)"
+        )
+        self.connection.commit()
+
+    def add(self, expense: Expense):
+        cur = self.connection.cursor()
+        cur.execute(
+            "insert into expenses (name, value, date, currency) values (?, ?, ?, ?)",
+            (
+                expense.name,
+                str(expense.value),
+                str(expense.date),
+                expense.currency,
+            ),
+        )
+        self.connection.commit()
+
+    def list(self):
+        cur = self.connection.cursor()
+        rows = cur.execute("select name, value, date, currency from expenses")
+        return [
+            Expense(name=r[0], value=r[1], date=r[2], currency=r[3])
+            for r in rows
+        ]
 
 
 repo = FileRepository()
