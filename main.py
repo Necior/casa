@@ -86,6 +86,7 @@ class SQLiteRepository:
 
 
 file_repo = FileRepository()
+sqlite_repo = SQLiteRepository()
 
 
 @app.get("/manifest.json")
@@ -115,7 +116,7 @@ def icon():
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
     expenses = groupby(
-        file_repo.list(), key=lambda e: (e.date.year, e.date.month)
+        sqlite_repo.list(), key=lambda e: (e.date.year, e.date.month)
     )
     final_exp = []
     for year_month, exp in expenses:
@@ -145,5 +146,26 @@ async def add(
     currency: str = Form(...),
 ):
     expense = Expense(name=name, value=value, date=date, currency=currency)
-    file_repo.add(expense)
+    sqlite_repo.add(expense)
     return RedirectResponse(url="/", status_code=303)
+
+
+migrated = False
+
+
+@app.post("/migrate")
+async def migrate():
+    global migrated
+    if migrated is True:
+        return "Already migrated"
+
+    for e in file_repo.list():
+        try:
+            c = e.currency
+        except AttributeError:
+            c = "PLN"
+        e.currency = c
+        sqlite_repo.add(e)
+
+    migrated = True
+    return "OK"
