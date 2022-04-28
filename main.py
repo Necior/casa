@@ -9,34 +9,14 @@ from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
-from casa import get_month_name
+from casa import QUOTES, get_month_name
 
 app = FastAPI(openapi_url=None)
 templates = Jinja2Templates(directory="./")
 
 
 def random_quote():
-    return random.choice(
-        [
-            "Bardziej od pieniędzy, potrzebujesz miłości. Miłość to siła nabywcza szczęścia.",  # noqa
-            "Chciałoby się być bogatym, aby już nie myśleć o pieniądzach, ale większość bogatych i tak nie myśli o niczym innym.",  # noqa
-            "Człowiek najpierw pragnie być pięknym, potem bogatym a na końcu tylko zdrowym.",  # noqa
-            "Człowiek z klasą nie rozdrabnia się nad sprawami pieniędzy.",  # noqa
-            "Gdy nie wiadomo o co chodzi, wiadomo, że chodzi o pieniądze. Podobnie jest z konkordatem, który dla finansów państwa okazał się istną czarną dziurą. Pochłania coraz więcej pieniędzy z państwowej kasy, a duchowni wynajdują różne sposoby, by zapewnić finansowanie z niej Kościoła.",  # noqa
-            "Gdy pieniądze mówią, prawda milczy.",  # noqa
-            "Grosz do grosza, a będzie kokosza.",  # noqa
-            "I znowu człowiek wydaje pieniądze, których nie ma, na rzeczy, których nie potrzebuje, by imponować ludziom, których nie lubi.",  # noqa
-            "Inteligencję człowieka można zobaczyć w tym, jak zarabia pieniądze. Jego mądrość w tym, jak je wydaje.",  # noqa
-            "Jeśli możesz policzyć, ile masz pieniędzy, to nie jesteś specjalnie bogaty.",  # noqa
-            "Kobietom pieniądze potrzebne nie są. Bo i po co? Nie piją, w kości nie grają, a kobietami, psiakrew, są przecież same.",  # noqa
-            "Pieniądze są materialną formą zasady mówiącej, że ludzie, którzy chcą załatwiać ze sobą interesy, muszą to robić w formie handlu, płacąc wartością za wartość.",  # noqa
-            "Pieniądze! Ze wszystkich wynalazków ludzkości – ten wynalazek jest najbliższy szatanowi.",  # noqa
-            "W sferze materialnej dawać znaczy być bogatym. Nie jest bogatym ten, kto dużo ma, lecz ten, kto dużo daje.",  # noqa
-            "Z pieniędzmi nie jest tak dobrze, jak jest źle bez nich.",  # noqa
-            "Ziarnko do ziarnka zbierając, do niczego nie dojdziesz, chyba żebyś żył kilkaset lat.",  # noqa
-            "Żyje się za pieniądze, ale nie warto żyć dla pieniędzy.",  # noqa
-        ]
-    )
+    return random.choice(QUOTES)
 
 
 class Expense(BaseModel):
