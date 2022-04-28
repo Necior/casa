@@ -38,6 +38,14 @@
         {% endfor %}
 	</details>
     {% endfor %}
+    <details>
+        <summary>Podsumowanie</summary>
+        <ul>
+            {% for currency, balance in balance.items() %}
+                <li>{{ currency }}: {{ balance }}</li>
+            {% endfor %}
+        </ul>
+    </details>
     <footer>
         <p>
             <small>{{ random_quote }}</small>

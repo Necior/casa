@@ -4,6 +4,7 @@ import shelve
 import sqlite3
 from decimal import Decimal
 from itertools import groupby
+from typing import Dict
 
 from fastapi import FastAPI, Form, Request
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
@@ -68,6 +69,17 @@ class SQLiteRepository:
             for r in rows
         ]
 
+    def balance(self) -> Dict[str, Decimal]:
+        def to_decimal(s: float) -> Decimal:
+            d = Decimal(int(s * 100))
+            return d / 100
+
+        cur = self.connection.cursor()
+        rows = cur.execute(
+            "select currency, -sum(value) from expenses group by currency"
+        )
+        return {row[0]: to_decimal(row[1]) for row in rows}
+
 
 sqlite_repo = SQLiteRepository()
 
@@ -117,6 +129,7 @@ async def root(request: Request):
             "today": datetime.datetime.now().strftime("%Y-%m-%d"),
             "random_quote": random.choice(QUOTES),
             "expenses": final_exp,
+            "balance": sqlite_repo.balance(),
         },
     )
 
