@@ -36,24 +36,6 @@ class Expense(BaseModel):
         }[(income, c)]
 
 
-class FileRepository:
-    def __init__(self):
-        self.db_path = "./db"
-        with shelve.open(self.db_path) as db:
-            if "history" not in db:
-                db["history"] = []
-
-    def add(self, expense: Expense):
-        with shelve.open(self.db_path) as db:
-            db["history"] = db["history"] + [expense]
-
-    def list(self):
-        with shelve.open(self.db_path) as db:
-            return list(
-                sorted(db["history"], key=lambda e: e.date, reverse=True)
-            )
-
-
 class SQLiteRepository:
     def __init__(self):
         self.connection = sqlite3.connect("db.sqlite")
@@ -85,7 +67,6 @@ class SQLiteRepository:
         ]
 
 
-file_repo = FileRepository()
 sqlite_repo = SQLiteRepository()
 
 
