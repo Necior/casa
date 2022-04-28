@@ -15,10 +15,6 @@ app = FastAPI(openapi_url=None)
 templates = Jinja2Templates(directory="./")
 
 
-def random_quote():
-    return random.choice(QUOTES)
-
-
 class Expense(BaseModel):
     name: str
     value: Decimal  # if income, provide a negative value
@@ -101,7 +97,7 @@ async def root(request: Request):
         {
             "request": request,
             "today": datetime.datetime.now().strftime("%Y-%m-%d"),
-            "random_quote": random_quote(),
+            "random_quote": random.choice(QUOTES),
             "expenses": final_exp,
         },
     )
