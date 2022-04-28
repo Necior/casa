@@ -80,7 +80,7 @@ class SQLiteRepository:
         return {row[0]: to_decimal(row[1]) for row in rows}
 
 
-sqlite_repo = SQLiteRepository()
+repo = SQLiteRepository()
 
 
 @app.get("/manifest.json")
@@ -109,9 +109,7 @@ def icon():
 
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
-    expenses = groupby(
-        sqlite_repo.list(), key=lambda e: (e.date.year, e.date.month)
-    )
+    expenses = groupby(repo.list(), key=lambda e: (e.date.year, e.date.month))
     final_exp = []
     for year_month, exp in expenses:
         final_exp.append(
@@ -128,7 +126,7 @@ async def root(request: Request):
             "today": datetime.datetime.now().strftime("%Y-%m-%d"),
             "random_quote": random.choice(QUOTES),
             "expenses": final_exp,
-            "balance": sqlite_repo.balance(),
+            "balance": repo.balance(),
         },
     )
 
@@ -141,5 +139,5 @@ async def add(
     currency: str = Form(...),
 ):
     expense = Expense(name=name, value=value, date=date, currency=currency)
-    sqlite_repo.add(expense)
+    repo.add(expense)
     return RedirectResponse(url="/", status_code=303)
