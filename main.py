@@ -1,6 +1,5 @@
 import datetime
 import random
-import shelve
 import sqlite3
 from decimal import Decimal
 from itertools import groupby
