@@ -14,6 +14,7 @@ A simple (no DBMS, no authentication, no JavaScript) PWA (Progressive Web App) t
 
 ```bash
 poetry install
+poetry run maturin develop
 
 # Please read https://fastapi.tiangolo.com/deployment/manually/ before deploying into production
 poetry run uvicorn main:app --host 127.0.0.1 --port 8080

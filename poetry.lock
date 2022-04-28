@@ -102,6 +102,21 @@ optional = false
 python-versions = ">=3.7"
 
 [[package]]
+name = "maturin"
+version = "0.12.14"
+description = "Build and publish crates with pyo3, rust-cpython and cffi bindings as well as rust binaries as python packages"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+tomli = {version = ">=1.1.0", markers = "python_version < \"3.11\""}
+
+[package.extras]
+zig = ["ziglang (>=0.9.0,<0.10.0)"]
+patchelf = ["patchelf"]
+
+[[package]]
 name = "pydantic"
 version = "1.9.0"
 description = "Data validation and settings management using python 3.6 type hinting"
@@ -158,6 +173,14 @@ anyio = ">=3.0.0,<4"
 full = ["itsdangerous", "jinja2", "python-multipart", "pyyaml", "requests"]
 
 [[package]]
+name = "tomli"
+version = "2.0.1"
+description = "A lil' TOML parser"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[[package]]
 name = "typing-extensions"
 version = "4.2.0"
 description = "Backported and Experimental Type Hints for Python 3.7+"
@@ -184,7 +207,7 @@ standard = ["websockets (>=10.0)", "httptools (>=0.4.0)", "watchgod (>=0.6)", "p
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "64eff4217e7dc0bb3421b777a0ea7bbf509cd193d899c339a483310a75dcb899"
+content-hash = "54af1175a62ac8876a20026a94d962c6952f37e3184ee3708cbcd95ca1179f8e"
 
 [metadata.files]
 anyio = [
@@ -261,6 +284,25 @@ markupsafe = [
     {file = "MarkupSafe-2.1.1-cp39-cp39-win_amd64.whl", hash = "sha256:46d00d6cfecdde84d40e572d63735ef81423ad31184100411e6e3388d405e247"},
     {file = "MarkupSafe-2.1.1.tar.gz", hash = "sha256:7f91197cc9e48f989d12e4e6fbc46495c446636dfc81b9ccf50bb0ec74b91d4b"},
 ]
+maturin = [
+    {file = "maturin-0.12.14-py3-none-macosx_10_7_x86_64.whl", hash = "sha256:8749379d62d7ac3e8bb12220394ef6514511ea3ac7da3dc531564e1ab2d50b77"},
+    {file = "maturin-0.12.14-py3-none-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:e5941bb60e4a9552fec506375f0b126c33e89f94c66616c4d69619a682a916bd"},
+    {file = "maturin-0.12.14-py3-none-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:fbed4a3372f0b701fa02f016a6d2de4706be71c0ba109208eaf2171518899b91"},
+    {file = "maturin-0.12.14-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:6b20b1af4667bb9a3829ddeb16d9cbd249e83680f272f8900134bf956813e80f"},
+    {file = "maturin-0.12.14-py3-none-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:6d6efe1ccc478bbba0cbf4001dfc02ba6bfe2fc776a770ce9f1e920f1acf2539"},
+    {file = "maturin-0.12.14-py3-none-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:1246186362c041d437e76e5bb481e29c3c9ed5aa28b4c03c579b3ba02a951a53"},
+    {file = "maturin-0.12.14-py3-none-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:b375ccd818463e4e21aba0be9c870df06ac972e8a6bea97eeb8a657033c5ce88"},
+    {file = "maturin-0.12.14-py3-none-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:6a14d291e9ab1c395de5eefaef50b42f3e6fb30624b654a4387e6a5a1ad6a343"},
+    {file = "maturin-0.12.14-py3-none-musllinux_1_1_aarch64.whl", hash = "sha256:3bf42f0a56556f14799bc6b315552878b1c3e62eccfb2b2c47e2c12d3b2466f7"},
+    {file = "maturin-0.12.14-py3-none-musllinux_1_1_armv7l.whl", hash = "sha256:396365bc665491063a1331993f27d47fafef393ece8fbadc5a3c550f31ce1714"},
+    {file = "maturin-0.12.14-py3-none-musllinux_1_1_i686.whl", hash = "sha256:8e9284e2b4959c989eb927d78b95673d9565efdb9ccba0019ef5ae3fb27db635"},
+    {file = "maturin-0.12.14-py3-none-musllinux_1_1_ppc64le.whl", hash = "sha256:86c82a213d7440b782f97473090274149f4c0430d16e3178eb552f5240439151"},
+    {file = "maturin-0.12.14-py3-none-musllinux_1_1_x86_64.whl", hash = "sha256:8a5118945d8e44ba5d7b989e8cee6fabbfd0eca02aaf19caddbfc33f1b851893"},
+    {file = "maturin-0.12.14-py3-none-win32.whl", hash = "sha256:6960ed15d0876b481edfb9e2800ab3b9327b19ea1a8635fc2905b21ab9d392d6"},
+    {file = "maturin-0.12.14-py3-none-win_amd64.whl", hash = "sha256:5ae0280b22609c0a524992c4c631fa9229e7894083f79a693658a6e2f1f9adfe"},
+    {file = "maturin-0.12.14-py3-none-win_arm64.whl", hash = "sha256:bb3f465ef31b991ece9aba8d3c58619dbb52114fdc52e7bc38016695aae3006f"},
+    {file = "maturin-0.12.14.tar.gz", hash = "sha256:9f58dca7fb211580bd24690a6b537d565ed28d4486168216636377443a4ff6c7"},
+]
 pydantic = [
     {file = "pydantic-1.9.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:cb23bcc093697cdea2708baae4f9ba0e972960a835af22560f6ae4e7e47d33f5"},
     {file = "pydantic-1.9.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:1d5278bd9f0eee04a44c712982343103bba63507480bfd2fc2790fa70cd64cf4"},
@@ -312,6 +354,10 @@ sniffio = [
 starlette = [
     {file = "starlette-0.17.1-py3-none-any.whl", hash = "sha256:26a18cbda5e6b651c964c12c88b36d9898481cd428ed6e063f5f29c418f73050"},
     {file = "starlette-0.17.1.tar.gz", hash = "sha256:57eab3cc975a28af62f6faec94d355a410634940f10b30d68d31cb5ec1b44ae8"},
+]
+tomli = [
+    {file = "tomli-2.0.1-py3-none-any.whl", hash = "sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc"},
+    {file = "tomli-2.0.1.tar.gz", hash = "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"},
 ]
 typing-extensions = [
     {file = "typing_extensions-4.2.0-py3-none-any.whl", hash = "sha256:6657594ee297170d19f67d55c05852a874e7eb634f4f753dbd667855e07c1708"},

@@ -9,6 +9,8 @@ from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
+from casa import get_month_name
+
 app = FastAPI(openapi_url=None)
 templates = Jinja2Templates(directory="./")
 
@@ -35,24 +37,6 @@ def random_quote():
             "Żyje się za pieniądze, ale nie warto żyć dla pieniędzy.",  # noqa
         ]
     )
-
-
-def get_month_name(month):
-    months_pl = [
-        "styczeń",
-        "luty",
-        "marzec",
-        "kwiecień",
-        "maj",
-        "czerwiec",
-        "lipiec",
-        "sierpień",
-        "wrzesień",
-        "październik",
-        "listopad",
-        "grudzień",
-    ]
-    return months_pl[month - 1]
 
 
 class Expense(BaseModel):

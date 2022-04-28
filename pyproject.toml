@@ -11,6 +11,7 @@ fastapi = "0.75.2"
 pydantic = "1.9.0"
 python-multipart = "^0.0.5"
 uvicorn = "0.17.6"
+maturin = "^0.12.14"
 
 [tool.poetry.dev-dependencies]
 
