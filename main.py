@@ -85,7 +85,7 @@ class SQLiteRepository:
         ]
 
 
-repo = FileRepository()
+file_repo = FileRepository()
 
 
 @app.get("/manifest.json")
@@ -114,7 +114,9 @@ def icon():
 
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
-    expenses = groupby(repo.list(), key=lambda e: (e.date.year, e.date.month))
+    expenses = groupby(
+        file_repo.list(), key=lambda e: (e.date.year, e.date.month)
+    )
     final_exp = []
     for year_month, exp in expenses:
         final_exp.append(
@@ -143,5 +145,5 @@ async def add(
     currency: str = Form(...),
 ):
     expense = Expense(name=name, value=value, date=date, currency=currency)
-    repo.add(expense)
+    file_repo.add(expense)
     return RedirectResponse(url="/", status_code=303)
