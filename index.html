@@ -33,7 +33,7 @@
 	{% if expense.value < 0 %}
 		<p>{{ expense.name }} (+ {{ -1 * expense.value }} zł)</p>
         {% else %}
-		<p>{{ expense.name }} ({{ expense.format() }})</p>
+		<p>{{ expense.name }} ({{ expense_formatter(expense.value, expense.currency) }})</p>
         {% endif %}
         {% endfor %}
 	</details>

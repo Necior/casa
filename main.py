@@ -16,20 +16,21 @@ app = FastAPI(openapi_url=None)
 templates = Jinja2Templates(directory="./")
 
 
+def format_expense(value: Decimal, currency: str) -> str:
+    income = value < 0
+    return {
+        (True, "PLN"): f"+{-value} zł",
+        (False, "PLN"): f"{value} zł",
+        (True, "EUR"): f"+ €{-value}",
+        (False, "EUR"): f"€{value}",
+    }[(income, currency)]
+
+
 class Expense(BaseModel):
     name: str
     value: Decimal  # if income, provide a negative value
     date: datetime.date
     currency: str = "PLN"
-
-    def format(self):
-        income = self.value < 0
-        return {
-            (True, "PLN"): f"+{-self.value} zł",
-            (False, "PLN"): f"{self.value} zł",
-            (True, "EUR"): f"+ €{-self.value}",
-            (False, "EUR"): f"€{self.value}",
-        }[(income, self.currency)]
 
 
 class SQLiteRepository:
@@ -123,6 +124,7 @@ async def root(request: Request):
             "random_quote": random.choice(QUOTES),
             "expenses": final_exp,
             "balance": repo.balance(),
+            "expense_formatter": format_expense,
         },
     )
 
