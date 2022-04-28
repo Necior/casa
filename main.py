@@ -23,17 +23,13 @@ class Expense(BaseModel):
     currency: str = "PLN"
 
     def format(self):
-        try:
-            c = self.currency
-        except AttributeError:
-            c = "PLN"
         income = self.value < 0
         return {
             (True, "PLN"): f"+{-self.value} zł",
             (False, "PLN"): f"{self.value} zł",
             (True, "EUR"): f"+ €{-self.value}",
             (False, "EUR"): f"€{self.value}",
-        }[(income, c)]
+        }[(income, self.currency)]
 
 
 class SQLiteRepository:
