@@ -148,24 +148,3 @@ async def add(
     expense = Expense(name=name, value=value, date=date, currency=currency)
     sqlite_repo.add(expense)
     return RedirectResponse(url="/", status_code=303)
-
-
-migrated = False
-
-
-@app.post("/migrate")
-async def migrate():
-    global migrated
-    if migrated is True:
-        return "Already migrated"
-
-    for e in file_repo.list():
-        try:
-            c = e.currency
-        except AttributeError:
-            c = "PLN"
-        e.currency = c
-        sqlite_repo.add(e)
-
-    migrated = True
-    return "OK"
