@@ -60,7 +60,9 @@ class SQLiteRepository:
 
     def list(self):
         cur = self.connection.cursor()
-        rows = cur.execute("select name, value, date, currency from expenses")
+        rows = cur.execute(
+            "select name, value, date, currency from expenses order by date desc"
+        )
         return [
             Expense(name=r[0], value=r[1], date=r[2], currency=r[3])
             for r in rows
