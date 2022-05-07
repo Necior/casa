@@ -30,11 +30,7 @@
         <details{% if loop.first %} open{% endif %}>
         <summary>{{ month_expenses['month'] }} {{ month_expenses['year'] }}</summary>
         {% for expense in month_expenses['items'] %}
-	{% if expense.value < 0 %}
-		<p>{{ expense.name }} (+ {{ -1 * expense.value }} zł)</p>
-        {% else %}
-		<p>{{ expense.name }} ({{ expense_formatter(expense.value, expense.currency) }})</p>
-        {% endif %}
+	<p>{{ expense.name }} ({{ expense_formatter(expense.value, expense.currency) }})</p>
         {% endfor %}
 	</details>
     {% endfor %}
