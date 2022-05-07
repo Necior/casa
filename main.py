@@ -40,6 +40,9 @@ class SQLiteRepository:
         cur.execute(
             "create table if not exists expenses (name text, value text, date text, currency text)"
         )
+        cur.execute(
+            "create table if not exists key_value_store (key text, value text)"
+        )
         self.connection.commit()
 
     def add(self, expense: Expense):
@@ -75,6 +78,21 @@ class SQLiteRepository:
             "select currency, -sum(value) from expenses group by currency"
         )
         return {row[0]: to_decimal(row[1]) for row in rows}
+
+    def get_notepad(self, notepad_key: str = "notepad") -> str:
+        """
+        Return notepad as a trusted HTML.
+
+        If not available, return an empty string.
+        """
+        cur = self.connection.cursor()
+        rows = cur.execute(
+            "select value from key_value_store where key = ?", (notepad_key,)
+        )
+        try:
+            return next(iter(rows))[0]
+        except StopIteration:
+            return ""
 
 
 repo = SQLiteRepository()
@@ -125,6 +143,7 @@ async def root(request: Request):
             "expenses": final_exp,
             "balance": repo.balance(),
             "expense_formatter": format_expense,
+            "notepad": repo.get_notepad(),
         },
     )
 
