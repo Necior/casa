@@ -1,6 +1,6 @@
 # casa
 
-A simple (no DBMS, no authentication, no JavaScript) PWA (Progressive Web App) to track personal expenses.
+A simple (SQLite-based, no authentication, no JavaScript) PWA (Progressive Web App) to track personal expenses.
 
 ## Properties
 
