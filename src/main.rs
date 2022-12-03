@@ -59,6 +59,7 @@ enum Currency {
     PLN,
     EUR,
     USD,
+    GBP,
 }
 
 impl ToSql for Currency {
@@ -75,6 +76,7 @@ impl TryFrom<String> for Currency {
             "PLN" => Ok(Currency::PLN),
             "EUR" => Ok(Currency::EUR),
             "USD" => Ok(Currency::USD),
+            "GBP" => Ok(Currency::GBP),
             _ => Err(()),
         }
     }
@@ -150,6 +152,8 @@ impl Display for Expense {
                 (true, Currency::EUR) => format!("+€{}", -self.value),
                 (false, Currency::USD) => format!("${}", self.value),
                 (true, Currency::USD) => format!("+${}", -self.value),
+                (false, Currency::GBP) => format!("£{}", self.value),
+                (true, Currency::GBP) => format!("+£{}", -self.value),
             },
         )
     }
@@ -275,6 +279,7 @@ r#"
                 <option value="EUR">EUR</option>
                 <option value="PLN">PLN</option>
                 <option value="USD">USD</option>
+                <option value="GBP">GBP</option>
 		    </select>
             <input type="date" name="date" value="{{ today }}">
             <button type="submit">Dodaj</button>
