@@ -131,6 +131,18 @@ struct Expense {
     currency: Currency,
 }
 
+impl Expense {
+    fn to_eur_approx(&self) -> f64 {
+        self.value
+            * match self.currency {
+                Currency::PLN => 0.21,
+                Currency::EUR => 1.00,
+                Currency::USD => 0.95,
+                Currency::GBP => 1.17,
+            }
+    }
+}
+
 impl Serialize for Expense {
     fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
     where
@@ -299,6 +311,7 @@ r#"
     {% endfor %}
     <details>
     <summary>Podsumowanie</summary>
+        <p><strong>tl;dr: ~€{{ total_eur }} łacznie.</strong></p>
         <ul>
             {% for (cur, bal) in balance %}
                 <li>{{ cur }}: {{ bal }}</li>
@@ -321,6 +334,14 @@ r#"
         balance => repo.balance().iter().collect::<Vec<_>>(),
         notepad => repo.get_notepad(),
         visit_counter => COUNTER.fetch_add(1, Ordering::SeqCst),
+        total_eur => {
+            let mut total: f64 = 0.0;
+            total += grouped_expenses
+                .iter()
+                .map(|pair| pair.1.iter().map(Expense::to_eur_approx).sum::<f64>())
+                .sum::<f64>();
+            -total.floor() as i64
+        },
     );
     axum::response::Html(r)
 }
