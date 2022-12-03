@@ -1,13 +1,16 @@
 [package]
 name = "casa"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2018"
 authors = ["Adrian Sadłocha <adrian@sadlocha.eu>"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-[lib]
-name = "casa"
-crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { version = "0.15.1", features = ["extension-module"] }
+axum = "0.6.1"
+chrono = "0.4.23"
+minijinja = "0.26.0"
+rand = "0.8.5"
+rusqlite = { version = "0.28.0", features = ["bundled"] }
+serde = { version = "1.0", features = ["derive"] }
+tokio = { version = "1.0", features = ["full"] }
