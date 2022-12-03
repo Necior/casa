@@ -311,7 +311,7 @@ r#"
     {% endfor %}
     <details>
     <summary>Podsumowanie</summary>
-        <p><strong>tl;dr: ~€{{ total_eur }} łacznie.</strong></p>
+        <p><strong>tl;dr: ~€{{ total_eur }} łącznie.</strong></p>
         <ul>
             {% for (cur, bal) in balance %}
                 <li>{{ cur }}: {{ bal }}</li>
