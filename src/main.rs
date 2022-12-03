@@ -13,6 +13,7 @@ use std::convert::{TryFrom, TryInto};
 use std::fmt::{Display, Formatter};
 use std::hash::Hash;
 use std::net::SocketAddr;
+use std::sync::atomic::{AtomicU64, Ordering};
 
 const QUOTES: [&str; 17] = [
     "Bardziej od pieniędzy, potrzebujesz miłości. Miłość to siła nabywcza szczęścia.",
@@ -33,6 +34,8 @@ const QUOTES: [&str; 17] = [
     "Ziarnko do ziarnka zbierając, do niczego nie dojdziesz, chyba żebyś żył kilkaset lat.",
     "Żyje się za pieniądze, ale nie warto żyć dla pieniędzy.",
 ];
+
+static COUNTER: AtomicU64 = AtomicU64::new(0);
 
 fn get_month_name(a: u16) -> &'static str {
     match a {
@@ -307,6 +310,7 @@ r#"
         <p>
             <small>{{ random_quote }}</small>
         </p>
+        <p><small>Liczba wizyt od ostatniego restartu: {{ visit_counter }}.</small></p>
         <p>Made with 🦀 by Adrian Sadłocha.</p>
     </footer>
 
@@ -316,6 +320,7 @@ r#"
         today => chrono::offset::Utc::now().format("%Y-%m-%d").to_string(),
         balance => repo.balance().iter().collect::<Vec<_>>(),
         notepad => repo.get_notepad(),
+        visit_counter => COUNTER.fetch_add(1, Ordering::SeqCst),
     );
     axum::response::Html(r)
 }
