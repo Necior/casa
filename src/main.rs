@@ -307,7 +307,7 @@ r#"
         <p>
             <small>{{ random_quote }}</small>
         </p>
-        <p>Made with ❤️ by Adrian Sadłocha.</p>
+        <p>Made with 🦀 by Adrian Sadłocha.</p>
     </footer>
 
 "#,
