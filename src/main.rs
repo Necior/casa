@@ -137,8 +137,8 @@ impl Expense {
             * match self.currency {
                 Currency::PLN => 0.21,
                 Currency::EUR => 1.00,
-                Currency::USD => 0.95,
-                Currency::GBP => 1.17,
+                Currency::USD => 0.94,
+                Currency::GBP => 1.15,
             }
     }
 }
