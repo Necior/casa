@@ -288,7 +288,7 @@ r#"
         <h1>Casa</h1>
         <form action="/add" method="post">
             <input placeholder="Kremówki papieskie" autocomplete="off" name="name">
-            <input id="value" autocomplete="off" placeholder="21.37" inputmode="decimal" type="number" step="0.01" name="value">
+            <input id="value" autocomplete="off" placeholder="21,37" inputmode="decimal" pattern="[0-9]+(,[0-9]{2})?" type="text" name="value">
             <select name="currency" id="currency">
                 <option value="">-- Wybierz walutę --</option>
                 <option value="EUR">EUR</option>
@@ -349,7 +349,7 @@ r#"
 #[derive(Debug, Deserialize)]
 struct NewExpense {
     name: String,
-    value: f64,
+    value: String,
     currency: Currency,
     date: String,
 }
@@ -357,12 +357,8 @@ struct NewExpense {
 async fn add_expense(Form(new_expense): Form<NewExpense>) -> Redirect {
     let repo = get_repo();
     let date = NaiveDate::parse_from_str(new_expense.date.as_str(), "%Y-%m-%d").unwrap();
-    repo.add(
-        new_expense.name,
-        new_expense.value,
-        date,
-        new_expense.currency,
-    );
+    let value = new_expense.value.replace(',', ".").parse().unwrap();
+    repo.add(new_expense.name, value, date, new_expense.currency);
     Redirect::to("/")
 }
 
