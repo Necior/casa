@@ -288,7 +288,7 @@ r#"
         <h1>Casa</h1>
         <form action="/add" method="post">
             <input placeholder="Kremówki papieskie" autocomplete="off" name="name">
-            <input id="value" autocomplete="off" placeholder="21,37" inputmode="decimal" pattern="[0-9]+(,[0-9]{2})?" type="text" name="value">
+            <input id="value" autocomplete="off" placeholder="21,37" inputmode="decimal" pattern="-?[0-9]+(,[0-9]{2})?" type="text" name="value">
             <select name="currency" id="currency">
                 <option value="">-- Wybierz walutę --</option>
                 <option value="EUR">EUR</option>
