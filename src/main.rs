@@ -51,7 +51,7 @@ const HTML_HEADER: &str = r#"<!DOCTYPE html>
     <header>
         <h1>Casa</h1>
         <p>
-            <a href="/">Casa</a> | <a href="/stats">Podsumowanie</a>
+            <a href="/">Casa</a> | <a href="/own">Przelew własny</a> | <a href="/stats">Podsumowanie</a>
         </p>
     </header>
 "#;
@@ -447,6 +447,37 @@ r#"{{ header }}
     axum::response::Html(r)
 }
 
+async fn own_transfer() -> axum::response::Html<String> {
+    let r = render!(
+r#"{{ header }}
+<form action="/add_own" method="post">
+    <select name="account_id_from" id="account_id_from">
+        <option value="">-- Wybierz konto wysyłające --</option>
+        {% for account in accounts %}
+          <option value="{{ account }}">[{{ accounts[account].currency }}] {{ accounts[account].name }}</option>
+        {% endfor %}
+    </select>
+    <input id="value_from" autocomplete="off" placeholder="21,37" inputmode="decimal" pattern="-?[0-9]+(,[0-9]{2})?" type="text" name="value_from">
+    <select name="account_id_to" id="account_id_to">
+        <option value="">-- Wybierz konto odbierające --</option>
+        {% for account in accounts %}
+          <option value="{{ account }}">[{{ accounts[account].currency }}] {{ accounts[account].name }}</option>
+        {% endfor %}
+    </select>
+    <input id="value_to" autocomplete="off" placeholder="21,37" inputmode="decimal" pattern="-?[0-9]+(,[0-9]{2})?" type="text" name="value_to">
+    <input type="date" name="date" value="{{ today }}">
+    <button type="submit">Dodaj</button>
+</form>
+{{ footer }}"#,
+        header => HTML_HEADER,
+        footer => render_footer(),
+        accounts => get_repo().get_accounts(),
+        today => chrono::offset::Utc::now().format("%Y-%m-%d").to_string(),
+    );
+
+    axum::response::Html(r)
+}
+
 #[derive(Debug, Deserialize)]
 struct NewExpense {
     name: String,
@@ -460,6 +491,48 @@ async fn add_expense(Form(new_expense): Form<NewExpense>) -> Redirect {
     let date = NaiveDate::parse_from_str(new_expense.date.as_str(), "%Y-%m-%d").unwrap();
     let value = new_expense.value.replace(',', ".").parse().unwrap();
     repo.add(new_expense.name, value, date, new_expense.account_id);
+    Redirect::to("/")
+}
+
+#[derive(Debug, Deserialize)]
+struct NewOwnTransfer {
+    account_id_from: String,
+    value_from: String,
+    account_id_to: String,
+    value_to: String,
+    date: String,
+}
+
+async fn add_own_transfer(Form(transfer): Form<NewOwnTransfer>) -> Redirect {
+    let repo = get_repo();
+    let id2account = repo.get_accounts();
+    let date = NaiveDate::parse_from_str(transfer.date.as_str(), "%Y-%m-%d").unwrap();
+    let value_from = transfer.value_from.replace(',', ".").parse().unwrap();
+    let value_to: f64 = transfer.value_to.replace(',', ".").parse().unwrap();
+    let account_from = id2account
+        .get(&transfer.account_id_from.parse().unwrap())
+        .unwrap();
+    let account_to = id2account
+        .get(&transfer.account_id_to.parse().unwrap())
+        .unwrap();
+
+    // TODO: don't abuse `Debug`.
+    let description = format!(
+        r#"Przesłanie z "[{:?}] {}" na "[{:?}] {}" [{} → {}]"#,
+        account_from.currency,
+        account_from.name,
+        account_to.currency,
+        account_to.name,
+        transfer.account_id_from,
+        transfer.account_id_to
+    );
+    repo.add(
+        description.clone(),
+        value_from,
+        date,
+        transfer.account_id_from,
+    );
+    repo.add(description, -value_to, date, transfer.account_id_to);
     Redirect::to("/")
 }
 
@@ -500,8 +573,10 @@ fn get_repo() -> SQLiteRepository {
 async fn main() {
     let app = Router::new()
         .route("/", get(root))
+        .route("/own", get(own_transfer))
         .route("/stats", get(stats))
         .route("/add", post(add_expense))
+        .route("/add_own", post(add_own_transfer))
         .route("/manifest.json", get(manifest))
         .route("/icon.png", get(icon));
 
