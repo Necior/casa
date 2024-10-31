@@ -222,6 +222,7 @@ trait Repository {
     fn get_notepad(&self) -> String;
     fn to_eur_approx(&self, currency: Currency) -> f64;
     fn get_accounts(&self) -> HashMap<SqliteInteger, Account>;
+    fn get_balance_per_account(&self) -> HashMap<String, f64>;
 }
 
 struct SQLiteRepository {
@@ -335,6 +336,21 @@ impl Repository for SQLiteRepository {
         }
         id2account
     }
+
+    fn get_balance_per_account(&self) -> HashMap<String, f64> {
+        let mut name2balance = HashMap::new();
+        // TODO: extract formatting to Rust.
+        let mut statement = self.connection.prepare("select '[' || accounts.currency || '] ' || accounts.name, -sum(expenses.value) from expenses join accounts on expenses.account_id = accounts.id group by accounts.name").unwrap();
+        let rows = statement
+            .query_map([], |row| Ok((row.get(0)?, row.get(1)?)))
+            .unwrap();
+        for row in rows {
+            let (name, balance) = row.unwrap();
+            name2balance.insert(name, balance);
+        }
+
+        name2balance
+    }
 }
 
 fn get_grouped_expenses(repo: &SQLiteRepository) -> Vec<(SpecificMonth, Vec<Expense>)> {
@@ -399,9 +415,16 @@ async fn stats() -> axum::response::Html<String> {
     let r = render!(
 r#"{{ header }}
     <p><strong>tl;dr: ~€{{ total_eur }} łącznie.</strong></p>
+    <p>Per waluta:</p>
     <ul>
         {% for (cur, bal) in balance %}
             <li>{{ cur }}: {{ bal }}</li>
+        {% endfor %}
+    </ul>
+    <p>Per konto:</p>
+    <ul>
+        {% for acc in acc_balance %}
+            <li>{{ acc | e }}: {{ acc_balance[acc] }}</li>
         {% endfor %}
     </ul>
     <p>{{ notepad }}</p>
@@ -419,6 +442,7 @@ r#"{{ header }}
                 .sum::<f64>();
             -total.floor() as i64
         },
+        acc_balance => repo.get_balance_per_account(),
     );
     axum::response::Html(r)
 }
