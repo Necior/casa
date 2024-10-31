@@ -255,10 +255,10 @@ impl Repository for SQLiteRepository {
                 // Fallback to hardcoded exchange rates.
                 eprintln!("Can't get exchange rates for {currency:?}: {e}");
                 match currency {
-                    Currency::PLN => 0.21,
+                    Currency::PLN => 0.23,
                     Currency::EUR => 1.00,
-                    Currency::USD => 0.94,
-                    Currency::GBP => 1.15,
+                    Currency::USD => 0.92,
+                    Currency::GBP => 1.18,
                 }
             }
         }
