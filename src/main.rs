@@ -56,7 +56,7 @@ fn get_month_name(a: u16) -> &'static str {
 }
 
 #[allow(clippy::upper_case_acronyms)]
-#[derive(Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 enum Currency {
     // Remember to update `try_from` when adding new currencies.
     PLN,
@@ -131,18 +131,6 @@ struct Expense {
     currency: Currency,
 }
 
-impl Expense {
-    fn to_eur_approx(&self) -> f64 {
-        self.value
-            * match self.currency {
-                Currency::PLN => 0.21,
-                Currency::EUR => 1.00,
-                Currency::USD => 0.94,
-                Currency::GBP => 1.15,
-            }
-    }
-}
-
 impl Serialize for Expense {
     fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
     where
@@ -186,6 +174,7 @@ trait Repository {
     fn list(&self) -> Vec<Expense>;
     fn balance(&self) -> HashMap<Currency, i64>;
     fn get_notepad(&self) -> String;
+    fn to_eur_approx(&self, currency: Currency) -> f64;
 }
 
 struct SQLiteRepository {
@@ -251,6 +240,28 @@ impl Repository for SQLiteRepository {
                 |row| row.get(0),
             )
             .unwrap()
+    }
+
+    fn to_eur_approx(&self, currency: Currency) -> f64 {
+        // TODO: query the database once per web page visit and get all currencies.
+        let rate: Result<f64, _> = self.connection.query_row(
+            "select rate from exchange_rates where currency = ?1",
+            [format!("{:?}", currency)],
+            |row| row.get(0),
+        );
+        match rate {
+            Ok(r) => r,
+            Err(e) => {
+                // Fallback to hardcoded exchange rates.
+                eprintln!("Can't get exchange rates for {currency:?}: {e}");
+                match currency {
+                    Currency::PLN => 0.21,
+                    Currency::EUR => 1.00,
+                    Currency::USD => 0.94,
+                    Currency::GBP => 1.15,
+                }
+            }
+        }
     }
 }
 
@@ -338,7 +349,7 @@ r#"
             let mut total: f64 = 0.0;
             total += grouped_expenses
                 .iter()
-                .map(|pair| pair.1.iter().map(Expense::to_eur_approx).sum::<f64>())
+                .map(|pair| pair.1.iter().map(|e| e.value * repo.to_eur_approx(e.currency)).sum::<f64>())
                 .sum::<f64>();
             -total.floor() as i64
         },
