@@ -35,6 +35,44 @@ const QUOTES: [&str; 17] = [
     "Żyje się za pieniądze, ale nie warto żyć dla pieniędzy.",
 ];
 
+const HTML_HEADER: &str = r#"<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Casa</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
+    <link rel="apple-touch-icon" sizes="192x192" href="/icon.png">
+    <link rel="manifest" href="/manifest.json" />
+</head>
+
+<body>
+    <header>
+        <h1>Casa</h1>
+        <p>
+            <a href="/">Casa</a> | <a href="/stats">Podsumowanie</a>
+        </p>
+    </header>
+"#;
+
+const HTML_FOOTER: &str = r#"
+<footer>
+    <p>
+        <small>{{ random_quote }}</small>
+    </p>
+    <p><small>Liczba wizyt od ostatniego restartu: {{ visit_counter }}.</small></p>
+    <p>Made with 🦀 by Adrian Sadłocha.</p>
+</footer>
+"#;
+
+fn render_footer() -> String {
+    render!(
+        HTML_FOOTER,
+        random_quote => QUOTES.iter().collect::<Vec<_>>().choose(&mut rand::thread_rng()),
+        visit_counter => COUNTER.fetch_add(1, Ordering::SeqCst),
+    )
+}
 static COUNTER: AtomicU64 = AtomicU64::new(0);
 
 type SqliteInteger = i32;
@@ -299,9 +337,8 @@ impl Repository for SQLiteRepository {
     }
 }
 
-async fn root() -> axum::response::Html<String> {
+fn get_grouped_expenses(repo: &SQLiteRepository) -> Vec<(SpecificMonth, Vec<Expense>)> {
     let mut grouped_expenses: HashMap<SpecificMonth, Vec<Expense>> = HashMap::new();
-    let repo = get_repo();
     for expense in repo.list() {
         let month = expense.date;
         if let Some(v) = grouped_expenses.get_mut(&month) {
@@ -311,40 +348,31 @@ async fn root() -> axum::response::Html<String> {
         }
     }
 
-    let mut grouped_expenses = grouped_expenses.iter().collect::<Vec<_>>();
+    let mut grouped_expenses = grouped_expenses.into_iter().collect::<Vec<_>>();
     grouped_expenses.sort_by_key(|x| Reverse((x.0.year, x.0.month)));
 
+    grouped_expenses
+}
+
+async fn root() -> axum::response::Html<String> {
+    let repo = get_repo();
+    let grouped_expenses = get_grouped_expenses(&repo);
+
     let r = render!(
-r#"
-<!DOCTYPE html>
-<html lang="pl">
+r#"{{ header }}
+    <form action="/add" method="post">
+        <input placeholder="Kremówki papieskie" autocomplete="off" name="name">
+        <input id="value" autocomplete="off" placeholder="21,37" inputmode="decimal" pattern="-?[0-9]+(,[0-9]{2})?" type="text" name="value">
+        <select name="account_id" id="account_id">
+            <option value="">-- Wybierz konto --</option>
+            {% for account in accounts %}
+              <option value="{{ account }}">[{{ accounts[account].currency }}] {{ accounts[account].name }}</option>
+            {% endfor %}
+        </select>
+        <input type="date" name="date" value="{{ today }}">
+        <button type="submit">Dodaj</button>
+    </form>
 
-<head>
-    <meta charset="UTF-8">
-    <title>Casa</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
-    <link rel="apple-touch-icon" sizes="192x192" href="/icon.png">
-    <link rel="manifest" href="/manifest.json" />
-</head>
-
-<body>
-    <header>
-        <h1>Casa</h1>
-        <form action="/add" method="post">
-            <input placeholder="Kremówki papieskie" autocomplete="off" name="name">
-            <input id="value" autocomplete="off" placeholder="21,37" inputmode="decimal" pattern="-?[0-9]+(,[0-9]{2})?" type="text" name="value">
-            <select name="account_id" id="account_id">
-                <option value="">-- Wybierz konto --</option>
-                {% for account in accounts %}
-                  <option value="{{ account }}">[{{ accounts[account].currency }}] {{ accounts[account].name }}</option>
-                {% endfor %}
-		    </select>
-            <input type="date" name="date" value="{{ today }}">
-            <button type="submit">Dodaj</button>
-        </form>
-    </header>
-    <a href="/">Odśwież</a>
     {% for (month, expenses) in grouped_expenses %}
         <details{% if loop.first %} open{% endif %}>
         <summary>{{ month }}</summary>
@@ -353,32 +381,36 @@ r#"
         {% endfor %}
         </details>
     {% endfor %}
-    <details>
-    <summary>Podsumowanie</summary>
-        <p><strong>tl;dr: ~€{{ total_eur }} łącznie.</strong></p>
-        <ul>
-            {% for (cur, bal) in balance %}
-                <li>{{ cur }}: {{ bal }}</li>
-            {% endfor %}
-        </ul>
-        <p>{{ notepad }}</p>
-    </details>
-    <footer>
-        <p>
-            <small>{{ random_quote }}</small>
-        </p>
-        <p><small>Liczba wizyt od ostatniego restartu: {{ visit_counter }}.</small></p>
-        <p>Made with 🦀 by Adrian Sadłocha.</p>
-    </footer>
-
+    {{ footer }}
 "#,
+        header => HTML_HEADER,
+        footer => render_footer(),
         accounts => repo.get_accounts(),
-        random_quote => QUOTES.iter().collect::<Vec<_>>().choose(&mut rand::thread_rng()),
         grouped_expenses => grouped_expenses,
         today => chrono::offset::Utc::now().format("%Y-%m-%d").to_string(),
+    );
+    axum::response::Html(r)
+}
+
+async fn stats() -> axum::response::Html<String> {
+    let repo = get_repo();
+    let grouped_expenses = get_grouped_expenses(&repo);
+
+    let r = render!(
+r#"{{ header }}
+    <p><strong>tl;dr: ~€{{ total_eur }} łącznie.</strong></p>
+    <ul>
+        {% for (cur, bal) in balance %}
+            <li>{{ cur }}: {{ bal }}</li>
+        {% endfor %}
+    </ul>
+    <p>{{ notepad }}</p>
+    {{ footer }}
+"#,
+        header => HTML_HEADER,
+        footer => render_footer(),
         balance => repo.balance().iter().collect::<Vec<_>>(),
         notepad => repo.get_notepad(),
-        visit_counter => COUNTER.fetch_add(1, Ordering::SeqCst),
         total_eur => {
             let mut total: f64 = 0.0;
             total += grouped_expenses
@@ -444,6 +476,7 @@ fn get_repo() -> SQLiteRepository {
 async fn main() {
     let app = Router::new()
         .route("/", get(root))
+        .route("/stats", get(stats))
         .route("/add", post(add_expense))
         .route("/manifest.json", get(manifest))
         .route("/icon.png", get(icon));
