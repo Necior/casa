@@ -37,6 +37,8 @@ const QUOTES: [&str; 17] = [
 
 static COUNTER: AtomicU64 = AtomicU64::new(0);
 
+type SqliteInteger = i32;
+
 fn get_month_name(a: u16) -> &'static str {
     match a {
         1 => "styczeń",
@@ -169,12 +171,19 @@ impl std::fmt::Debug for Expense {
     }
 }
 
+#[derive(Serialize)]
+struct Account {
+    name: String,
+    currency: Currency,
+}
+
 trait Repository {
-    fn add(&self, name: String, value: f64, date: NaiveDate, currency: Currency);
+    fn add(&self, name: String, value: f64, date: NaiveDate, account_id: String);
     fn list(&self) -> Vec<Expense>;
     fn balance(&self) -> HashMap<Currency, i64>;
     fn get_notepad(&self) -> String;
     fn to_eur_approx(&self, currency: Currency) -> f64;
+    fn get_accounts(&self) -> HashMap<SqliteInteger, Account>;
 }
 
 struct SQLiteRepository {
@@ -182,18 +191,18 @@ struct SQLiteRepository {
 }
 
 impl Repository for SQLiteRepository {
-    fn add(&self, name: String, value: f64, date: NaiveDate, currency: Currency) {
+    fn add(&self, name: String, value: f64, date: NaiveDate, account_id: String) {
         self.connection
             .execute(
-                "insert into expenses (name, value, date, currency) values (?1, ?2, ?3, ?4)",
-                (name, value, date.format("%Y-%m-%d").to_string(), currency),
+                "insert into expenses (name, value, date, account_id) values (?1, ?2, ?3, ?4)",
+                (name, value, date.format("%Y-%m-%d").to_string(), account_id),
             )
             .unwrap();
     }
 
     fn list(&self) -> Vec<Expense> {
         let mut expenses: Vec<Expense> = Vec::new();
-        let mut statement = self.connection.prepare("select name, cast(value as real), date, currency from expenses order by date desc, rowid desc").unwrap();
+        let mut statement = self.connection.prepare("select expenses.name, cast(expenses.value as real), expenses.date, accounts.currency from expenses join accounts on account_id = accounts.id order by date desc, expenses.rowid desc").unwrap();
         let expenses_iter = statement
             .query_map([], |row| {
                 Ok(Expense {
@@ -215,7 +224,7 @@ impl Repository for SQLiteRepository {
         let mut map = HashMap::new();
         let mut p = self
             .connection
-            .prepare("select currency, -sum(value) from expenses group by currency")
+            .prepare("select accounts.currency, -sum(expenses.value) from expenses join accounts on expenses.account_id = accounts.id group by accounts.currency")
             .unwrap();
 
         let balance_iter = p
@@ -246,6 +255,7 @@ impl Repository for SQLiteRepository {
         // TODO: query the database once per web page visit and get all currencies.
         let rate: Result<f64, _> = self.connection.query_row(
             "select rate from exchange_rates where currency = ?1",
+            // TODO: don't abuse `Debug`.
             [format!("{:?}", currency)],
             |row| row.get(0),
         );
@@ -262,6 +272,30 @@ impl Repository for SQLiteRepository {
                 }
             }
         }
+    }
+
+    fn get_accounts(&self) -> HashMap<SqliteInteger, Account> {
+        let mut id2account = HashMap::new();
+        let mut statement = self
+            .connection
+            .prepare("select id, name, currency from accounts order by display_order")
+            .unwrap();
+        let rows = statement
+            .query_map([], |row| {
+                Ok((
+                    row.get::<usize, SqliteInteger>(0)?,
+                    Account {
+                        name: row.get(1)?,
+                        currency: row.get::<usize, String>(2).unwrap().try_into().unwrap(),
+                    },
+                ))
+            })
+            .unwrap();
+        for row in rows {
+            let (id, account) = row.unwrap();
+            id2account.insert(id, account);
+        }
+        id2account
     }
 }
 
@@ -300,12 +334,11 @@ r#"
         <form action="/add" method="post">
             <input placeholder="Kremówki papieskie" autocomplete="off" name="name">
             <input id="value" autocomplete="off" placeholder="21,37" inputmode="decimal" pattern="-?[0-9]+(,[0-9]{2})?" type="text" name="value">
-            <select name="currency" id="currency">
-                <option value="">-- Wybierz walutę --</option>
-                <option value="EUR">EUR</option>
-                <option value="PLN">PLN</option>
-                <option value="USD">USD</option>
-                <option value="GBP">GBP</option>
+            <select name="account_id" id="account_id">
+                <option value="">-- Wybierz konto --</option>
+                {% for account in accounts %}
+                  <option value="{{ account }}">[{{ accounts[account].currency }}] {{ accounts[account].name }}</option>
+                {% endfor %}
 		    </select>
             <input type="date" name="date" value="{{ today }}">
             <button type="submit">Dodaj</button>
@@ -339,6 +372,7 @@ r#"
     </footer>
 
 "#,
+        accounts => repo.get_accounts(),
         random_quote => QUOTES.iter().collect::<Vec<_>>().choose(&mut rand::thread_rng()),
         grouped_expenses => grouped_expenses,
         today => chrono::offset::Utc::now().format("%Y-%m-%d").to_string(),
@@ -361,7 +395,7 @@ r#"
 struct NewExpense {
     name: String,
     value: String,
-    currency: Currency,
+    account_id: String,
     date: String,
 }
 
@@ -369,7 +403,7 @@ async fn add_expense(Form(new_expense): Form<NewExpense>) -> Redirect {
     let repo = get_repo();
     let date = NaiveDate::parse_from_str(new_expense.date.as_str(), "%Y-%m-%d").unwrap();
     let value = new_expense.value.replace(',', ".").parse().unwrap();
-    repo.add(new_expense.name, value, date, new_expense.currency);
+    repo.add(new_expense.name, value, date, new_expense.account_id);
     Redirect::to("/")
 }
 
