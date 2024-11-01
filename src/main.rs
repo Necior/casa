@@ -340,7 +340,7 @@ impl Repository for SQLiteRepository {
     fn get_balance_per_account(&self) -> HashMap<String, i64> {
         let mut name2balance = HashMap::new();
         // TODO: extract formatting to Rust.
-        let mut statement = self.connection.prepare("select '[' || accounts.currency || '] ' || accounts.name, cast(-sum(expenses.value) as int) from expenses join accounts on expenses.account_id = accounts.id group by accounts.name").unwrap();
+        let mut statement = self.connection.prepare("select '[' || accounts.currency || '] ' || accounts.name, cast(-sum(expenses.value) as int) from expenses join accounts on expenses.account_id = accounts.id group by accounts.id").unwrap();
         let rows = statement
             .query_map([], |row| Ok((row.get(0)?, row.get(1)?)))
             .unwrap();
