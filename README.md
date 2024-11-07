@@ -1,17 +1,32 @@
 # casa
 
-A simple (SQLite-based, no authentication, no JavaScript) PWA (Progressive Web App) to track personal expenses.
+A simple (SQLite-based, no authentication, no JavaScript) PWA (Progressive Web App) to track household expenses.
 
-## Properties
+## Usage
 
-* Made in Rust;
-* CSS supports both light and dark themes, depending on agent preferences, thanks to water.css;
-* Stores data in a single file (this constraint might be relaxed in the future);
-* No JavaScript.
-
-## Installation and usage
+Use Nix. Run `nix-shell` and within the shell run:
 
 ```bash
 cargo run --release
 ```
 
+## Background
+
+I wanted an app that would:
+
+* be dedicated for my household needs;
+* require minimal effort to enter a new expense;
+* provide value;
+* be designed in line with _my_ threat model;
+* be fun or educational to develop.
+
+That resulted in the following implementation decisions:
+
+* Progressive Web App so it looks like an app on a phone and it might be used from a browser;
+* The most common workflow -- entering a new expense -- is the first thing on the main page;
+* SQLite as the database since we don't need high availability;
+* No authentication in the app layer. When deploying, use whatever other mechanism to limit access. It might be a reverse proxy, or an air-gapped machine in your hall :)
+* Manual database migrations;
+* No JavaScript;
+* [Water.css](https://watercss.kognise.dev/) as the collection of CSS styles;
+* Coded in Rust.
