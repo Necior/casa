@@ -7,10 +7,10 @@ authors = ["Adrian Sadłocha <adrian@sadlocha.eu>"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-axum = "0.6.1"
-chrono = "0.4.23"
+axum = "0.6.20"
+chrono = "0.4.38"
 minijinja = "0.26.0"
 rand = "0.8.5"
 rusqlite = { version = "0.28.0", features = ["bundled"] }
 serde = { version = "1.0", features = ["derive"] }
-tokio = { version = "1.0", features = ["full"] }
+tokio = { version = "1.41", features = ["full"] }
