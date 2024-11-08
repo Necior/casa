@@ -4,11 +4,13 @@ A simple (SQLite-based, no authentication, no JavaScript) PWA (Progressive Web A
 
 ## Usage
 
-Use Nix. Run `nix-shell` and within the shell run:
+Set up the SQLite database in `db.sqlite` and then run:
 
-```bash
-cargo run --release
+```sh
+nix run
 ```
+
+If you're one of today's lucky 10000 and don't know what Nix is, check out [https://nixos.org/](https://nixos.org/).
 
 ## Background
 
