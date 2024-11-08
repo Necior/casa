@@ -287,7 +287,7 @@ impl Repository for SQLiteRepository {
                 [],
                 |row| row.get(0),
             )
-            .unwrap()
+            .unwrap_or("".to_string())
     }
 
     fn to_eur_approx(&self, currency: Currency) -> f64 {
